@@ -32,30 +32,51 @@ func main() {
 	timer := time.NewTimer(duration)
 	defer timer.Stop()
 
-	// Channel to signal skip and cleanup completion
+	// Channel to signal skip, terminate, and cleanup completion
 	skipChan := make(chan struct{})
+	terminateChan := make(chan struct{})
 	cleanupDone := make(chan struct{})
 
 	fmt.Printf("Chilling for %v (press Ctrl+G to skip, Ctrl+C to terminate)...\n", duration)
 
-	// Start goroutine to listen for Ctrl+G
-	go listenForSkip(skipChan, cleanupDone)
+	// Start goroutine to listen for Ctrl+G and Ctrl+C
+	go listenForInput(skipChan, terminateChan, cleanupDone)
+
+	// Create a ticker for countdown updates
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	remaining := duration
 
 	// Wait for either timer, signal, or skip
-	select {
-	case <-timer.C:
-		fmt.Println("Done chilling!")
-	case <-sigChan:
-		fmt.Println("\nTerminated.")
-		os.Exit(0)
-	case <-skipChan:
-		fmt.Println("\nChilling skipped.")
-		// Wait for goroutine to finish cleanup before exiting
-		<-cleanupDone
+	for {
+		select {
+		case <-timer.C:
+			fmt.Println("\nDone chilling!")
+			return
+		case <-sigChan:
+			fmt.Println("\nTerminated.")
+			os.Exit(0)
+		case <-terminateChan:
+			fmt.Println("\nTerminated.")
+			// Wait for goroutine to finish cleanup before exiting
+			<-cleanupDone
+			os.Exit(0)
+		case <-skipChan:
+			fmt.Println("\nChilling skipped.")
+			// Wait for goroutine to finish cleanup before exiting
+			<-cleanupDone
+			return
+		case <-ticker.C:
+			remaining -= time.Second
+			if remaining > 0 {
+				fmt.Printf("\rChilling for %v remaining... ", remaining)
+			}
+		}
 	}
 }
 
-func listenForSkip(skipChan chan<- struct{}, cleanupDone chan<- struct{}) {
+func listenForInput(skipChan chan<- struct{}, terminateChan chan<- struct{}, cleanupDone chan<- struct{}) {
 	// Save original terminal state
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
@@ -72,6 +93,12 @@ func listenForSkip(skipChan chan<- struct{}, cleanupDone chan<- struct{}) {
 	for {
 		n, err := os.Stdin.Read(buf)
 		if err != nil || n == 0 {
+			return
+		}
+
+		// Ctrl+C is ASCII 3
+		if buf[0] == 3 {
+			terminateChan <- struct{}{}
 			return
 		}
 
