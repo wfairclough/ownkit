@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "chill_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/wfairclough/ownkit/cmd/chill",
+    visibility = ["//visibility:private"],
+    deps = ["@org_golang_x_term//:term"],
+)
+
+go_binary(
+    name = "chill",
+    embed = [":chill_lib"],
+    visibility = ["//visibility:public"],
+)

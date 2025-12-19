@@ -34,7 +34,10 @@ bazel_dep(name = "bazel_env.bzl", version = "0.5.0", dev_dependency = True)
 # Go version 1.25.3 is specified in go.mod
 # We download an SDK for the host OS/architecture and common remote platforms
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
-go_sdk.download(name = "go_sdk", version = "1.25.3")
+go_sdk.download(
+    name = "go_sdk",
+    version = "1.25.3",
+)
 use_repo(go_sdk, "go_sdk")
 
 ###############################################################################
@@ -43,6 +46,7 @@ use_repo(go_sdk, "go_sdk")
 
 go_deps = use_extension("@bazel_gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
+use_repo(go_deps, "org_golang_x_term")
 
 # Note: When adding Go dependencies, you'll need to add them to use_repo()
 # Run 'bazel mod tidy' to automatically update this section
