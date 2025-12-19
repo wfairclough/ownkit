@@ -1,0 +1,29 @@
+# Bazel
+/bazel-*
+.bazelrc.user
+
+# Go
+*.so
+*.dylib
+*.dll
+*.exe
+*.test
+*.out
+/go.sum
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+*.log
+
+# Build artifacts
+/dist/
+/build/
+/bin/

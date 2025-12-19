@@ -1,0 +1,45 @@
+load("@bazel_env.bzl", "bazel_env")
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+###############################################################################
+# Gazelle targets for BUILD file generation
+###############################################################################
+
+# Generate/update BUILD.bazel files for Go code
+gazelle(
+    name = "gazelle",
+    prefix = "github.com/wfairclough/ownkit",
+)
+
+# Update Go module dependencies from go.mod
+gazelle(
+    name = "gazelle-update-repos",
+    args = [
+        "-from_file=go.mod",
+        "-to_macro=go_deps.bzl%go_dependencies",
+        "-prune",
+    ],
+    command = "update-repos",
+)
+
+###############################################################################
+# Bazel environment - manage global toolchain dependencies
+###############################################################################
+
+bazel_env(
+    name = "bazel_env",
+    toolchains = {},
+    tools = {
+        "go": "@io_bazel_rules_go//go",
+    },
+)
+
+###############################################################################
+# File exports
+###############################################################################
+
+exports_files([
+    ".bazelrc",
+    ".bazelversion",
+    "go.mod",
+])

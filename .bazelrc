@@ -1,0 +1,76 @@
+###############################################################################
+# Bzlmod Configuration (required for MODULE.bazel)
+###############################################################################
+
+common --enable_bzlmod
+
+###############################################################################
+# Core Build Configuration
+###############################################################################
+
+# Strict action environment for reproducibility
+build --incompatible_strict_action_env=true
+
+# Performance optimizations
+build --jobs=40
+build --disk_cache=
+build --experimental_inmemory_dotd_files
+build --experimental_inmemory_jdeps_files
+build --grpc_keepalive_time=30s
+build --legacy_important_outputs=false
+build --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+build --noincompatible_check_sharding_support
+
+# Proto toolchain configuration
+build --incompatible_enable_proto_toolchain_resolution
+
+# Output configuration for better debugging
+build --color=yes
+build --curses=yes
+build --show_timestamps
+build --announce_rc
+build --nobuild_runfile_links
+
+# Go-specific configurations
+build --@io_bazel_rules_go//go/config:static
+
+###############################################################################
+# Test Configuration
+###############################################################################
+
+test --test_output=summary
+test --show_progress_rate_limit=2.0
+
+###############################################################################
+# Platform-Specific Configurations
+###############################################################################
+
+build:macos --macos_minimum_os=11.0
+build:linux --cxxopt=-std=c++17
+
+###############################################################################
+# Build Configurations
+###############################################################################
+
+# Debug build with symbols
+build:debug --compilation_mode=dbg
+build:debug --strip=never
+
+# Release build with optimizations
+build:release --compilation_mode=opt
+build:release --stamp
+
+# CI/CD configuration
+build:ci --color=no
+build:ci --show_progress_rate_limit=30
+build:ci --curses=no
+build:ci --terminal_columns=120
+
+###############################################################################
+# User-specific settings
+###############################################################################
+
+# User-specific settings should be placed into .bazelrc.user as it's not
+# checked into the repo. This allows developers to customize their local setup
+# without affecting the shared configuration.
+try-import .bazelrc.user
