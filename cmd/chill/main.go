@@ -56,12 +56,12 @@ func main() {
 			return
 		case <-sigChan:
 			fmt.Println("\nTerminated.")
-			os.Exit(0)
+			os.Exit(2)
 		case <-terminateChan:
 			fmt.Println("\nTerminated.")
 			// Wait for goroutine to finish cleanup before exiting
 			<-cleanupDone
-			os.Exit(0)
+			os.Exit(2)
 		case <-skipChan:
 			fmt.Println("\nChilling skipped.")
 			// Wait for goroutine to finish cleanup before exiting
